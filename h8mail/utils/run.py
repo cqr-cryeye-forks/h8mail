@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
 # Most imports are after python2/3 check further down
-import configparser
 import argparse
 import os
-import re
 import time
-import sys
 
 from .breachcompilation import breachcomp_check
+from .chase import chase
 from .classes import target
 from .colors import colors as c
+from .gen_config import gen_config_file
 from .helpers import (
     fetch_emails,
     find_files,
@@ -18,14 +17,12 @@ from .helpers import (
     print_banner,
     save_results_csv,
     check_latest_version,
-    check_scylla_online
+    check_scylla_online, save_results_json
 )
-from .localsearch import local_search, local_search_single, local_to_targets
 from .localgzipsearch import local_gzip_search, local_search_single_gzip
-from .summary import print_summary
-from .chase import chase
+from .localsearch import local_search, local_search_single, local_to_targets
 from .print_results import print_results
-from .gen_config import gen_config_file
+from .summary import print_summary
 
 
 def target_factory(targets, user_args):
@@ -46,9 +43,9 @@ def target_factory(targets, user_args):
     if user_args.user_query is not None:
         query = user_args.user_query
         skip_default_queries = False
-    
+
     scylla_up = False
-    
+
     for counter, t in enumerate(targets):
         c.info_news("Target factory started for {target}".format(target=t))
         if user_args.debug:
@@ -163,9 +160,11 @@ def h8mail(user_args):
     if user_args.output_file:
         save_results_csv(user_args.output_file, breached_targets)
 
+    if user_args.output_json:
+        save_results_json(user_args.output_json, breached_targets)
+
 
 def main():
-
     parser = argparse.ArgumentParser(
         description="Email information and password lookup tool", prog="h8mail"
     )
@@ -199,6 +198,9 @@ def main():
     )
     parser.add_argument(
         "-o", "--output", dest="output_file", help="File to write CSV output"
+    )
+    parser.add_argument(
+        "-oj", "--output-json", dest="output_json", help="File to write JSON output"
     )
     parser.add_argument(
         "-bc",

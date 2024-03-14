@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import re
-from .colors import colors as c
 import configparser
 import csv
-import os
 import glob
-from .version import __version__
-import requests
 import json
+import os
+import re
+
+import requests
+
+from .colors import colors as c
+from .version import __version__
 
 
 def find_files(to_parse, pattern=""):
@@ -164,6 +166,27 @@ def save_results_csv(dest_csv, target_obj_list):
             print(ex)
 
 
+def save_results_json(dest_csv, target_obj_list):
+    """
+    Outputs JSON from target object list.
+    Dumps the target.data object variable into JSON file.
+    """
+    output = []
+    for t in target_obj_list:
+        for i in range(len(t.data)):
+            try:
+                if len(t.data[i]) == 2:
+                    output.append({
+                        "target": t.target,
+                        "type": t.data[i][0],
+                        "data": t.data[i][1]
+                    })
+            except Exception:
+                ...
+    with open(dest_csv, "w") as f:
+        json.dump(output, f, indent=2)
+
+
 def check_latest_version():
     """
     Fetches local version and compares it to github api tag version
@@ -181,6 +204,7 @@ def check_latest_version():
                 current=__version__, latest=latest
             )
         )
+
 
 def check_scylla_online():
     """
